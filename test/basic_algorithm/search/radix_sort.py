@@ -1,5 +1,5 @@
 import pytest
-from basic_algorithms.radix_sort import radix_sort, _get_max_digits, _split_by_polarity
+from basic_algorithms.search.radix_sort import radix_sort, _get_max_digits, _split_by_polarity
 import numpy as np
 
 
