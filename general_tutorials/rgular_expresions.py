@@ -9,7 +9,7 @@ def starts_with(prefix):
     return f'^{prefix}'
 
 
-def ends_with(text, suffix):
+def ends_with(suffix):
     return f'{suffix}$'
 
 
@@ -81,12 +81,23 @@ def lang11():
 # <.*?> matches any character between < and >, but as few characters as possible
 # <.*> matches any character between < and >, but as many characters as possible
 # <[^<>]*> matches any character between < and >, but not < or >
+# /Babc/B matches abc only if it is not preceded or followed by another letter
+
 
 def match(text, pattern):
+    """
+    Check if the text matches the pattern
+    :param text: text to match
+    :param pattern: pattern to match
+    :return: True if the text matches the pattern, False otherwise
+    """
+    # match the entire text
     pos = re.match(pattern, text)
+    # if no match, return False
     if pos is None:
         return False
 
+    # if match, check if the match is the entire text
     start, end = pos.span()
     if start == 0 and end == len(text):
         return True
@@ -96,4 +107,3 @@ def match(text, pattern):
 if __name__ == '__main__':
     text = 'abbbccccc'
     print(f'text: {text}, pattern: {lang4()}', match(text, lang4()))
-    e = 0
