@@ -1,4 +1,4 @@
-from basic_algorithms.graph.belman_ford import belman_ford, is_negative_cycles, find_shortest_path
+from basic_algorithms.graph.belman_ford import belman_ford, _is_negative_cycles, _find_shortest_path
 import numpy as np
 import networkx as nx
 

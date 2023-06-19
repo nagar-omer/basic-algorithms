@@ -7,7 +7,7 @@ SOURCE_NODE = 'source'
 SHORTEST_PATH = 'path'
 
 
-def relax(gnx: nx.DiGraph, u: int, v: int, weight_col: str) -> bool:
+def _relax(gnx: nx.DiGraph, u: int, v: int, weight_col: str) -> bool:
     """
     Relaxation step in Belman-Ford algorithm
     check that the distance from source to v is shorter when going through u than the current distance
@@ -31,7 +31,7 @@ def relax(gnx: nx.DiGraph, u: int, v: int, weight_col: str) -> bool:
     return False
 
 
-def edge_iter(gnx: nx.DiGraph, source: int):
+def _edge_iter(gnx: nx.DiGraph, source: int):
     """
     Define iteration order for edges through all steps of Belman-Ford algorithm
     This function follows BFS to reduce the number of iterations at each step to reachable nodes only
@@ -54,7 +54,7 @@ def edge_iter(gnx: nx.DiGraph, source: int):
         yield iter_list
 
 
-def find_shortest_path(gnx: nx.DiGraph, source: int, weight_col: str):
+def _find_shortest_path(gnx: nx.DiGraph, source: int, weight_col: str):
     """
     Find shortest path from source to all other nodes in the graph
     :param gnx: graph object
@@ -62,12 +62,12 @@ def find_shortest_path(gnx: nx.DiGraph, source: int, weight_col: str):
     :param weight_col: weight key in edge data
     """
     # do |V|-1 times
-    for edge_list in edge_iter(gnx, source):
+    for edge_list in _edge_iter(gnx, source):
         for u, v in edge_list:
-            relax(gnx=gnx, u=u, v=v, weight_col=weight_col)
+            _relax(gnx=gnx, u=u, v=v, weight_col=weight_col)
 
 
-def is_negative_cycles(gnx: nx.DiGraph, weight_col: str):
+def _is_negative_cycles(gnx: nx.DiGraph, weight_col: str):
     """
     Check if there are negative cycles in the graph
     NOTE: this function assumes that the graph has been relaxed |V|-1 times
@@ -97,8 +97,8 @@ def belman_ford(gnx: nx.Graph, source: int, weight: str = 'weight') -> Tuple[dic
         data[SHORTEST_PATH] = [0]
 
     # find shortest paths and detect negative cycles
-    find_shortest_path(gnx=gnx, source=source, weight_col=weight)
-    is_neg = is_negative_cycles(gnx=gnx, weight_col=weight)
+    _find_shortest_path(gnx=gnx, source=source, weight_col=weight)
+    is_neg = _is_negative_cycles(gnx=gnx, weight_col=weight)
 
     # convert distances to dictionary
     dist_dict = {node_id: (data[SHORTEST_PATH], data[DIST_TO_SOURCE]) for node_id, data in gnx.nodes(data=True)}
