@@ -34,6 +34,7 @@ def merge_sorted_arrays(arr1, arr2):
 def merge_sort(arr):
     """
     Merge sort algorithm
+    complexity: O(nlogn)
     :param arr: array to be sorted
     :return: sorted array ~O(nlogn)
     """

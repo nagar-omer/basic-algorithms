@@ -17,7 +17,6 @@ class QueueNodeItem:
     node_id: int = field(compare=False)
 
 
-
 def dijkstra(gnx: nx.Graph, source, weight) -> dict:
     """
     Find shortest path from source to all other nodes in the graph

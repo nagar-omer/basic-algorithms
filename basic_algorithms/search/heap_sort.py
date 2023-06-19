@@ -178,6 +178,7 @@ class Heap:
 def heap_sort(arr):
     """
     Sort array using heap sort
+    complexity: O(n log n)
     :param arr: array to sort
     :return: sorted array
     """
