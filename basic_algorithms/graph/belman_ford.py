@@ -21,7 +21,7 @@ def _relax(gnx: nx.DiGraph, u: int, v: int, weight_col: str) -> bool:
 
     # get distances from source
     u_dist, v_dist = gnx.nodes[u][DIST_TO_SOURCE], gnx.nodes[v][DIST_TO_SOURCE]
-    weight = gnx.edges[u, v][weight_col]
+    weight = gnx.edges[u, v].get(weight_col, 1)
     # check if distance from source to v is shorter when going through u
     if u_dist + weight < v_dist:
         gnx.nodes[v][DIST_TO_SOURCE] = u_dist + weight
@@ -76,7 +76,7 @@ def _is_negative_cycles(gnx: nx.DiGraph, weight_col: str):
     :return:
     """
     for u, v, data in gnx.edges(data=True):
-        if gnx.nodes[u][DIST_TO_SOURCE] + data[weight_col] < gnx.nodes[v][DIST_TO_SOURCE]:
+        if gnx.nodes[u][DIST_TO_SOURCE] + data.get(weight_col, 1) < gnx.nodes[v][DIST_TO_SOURCE]:
             return True
     return False
 

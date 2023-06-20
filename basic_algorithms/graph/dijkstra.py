@@ -17,7 +17,7 @@ class QueueNodeItem:
     node_id: int = field(compare=False)
 
 
-def dijkstra(gnx: nx.Graph, source, weight) -> dict:
+def dijkstra(gnx: nx.Graph, source, weight: str = 'weight') -> dict:
     """
     Find shortest path from source to all other nodes in the graph
     This version is implemented using priority queue
@@ -50,7 +50,7 @@ def dijkstra(gnx: nx.Graph, source, weight) -> dict:
         visited.add(closest_node.node_id)
         for neighbor in gnx.successors(closest_node.node_id):
             # check if distance from source to v is shorter when going through u
-            alternative_dist = closest_node.dist + gnx.edges[closest_node.node_id, neighbor][weight]
+            alternative_dist = closest_node.dist + gnx.edges[closest_node.node_id, neighbor].get(weight, 1)
             if alternative_dist < gnx.nodes[neighbor][DIST_TO_SOURCE]:
                 # push to queue and update distance in graph database
                 heappush(queue, QueueNodeItem(node_id=neighbor, dist=alternative_dist))
