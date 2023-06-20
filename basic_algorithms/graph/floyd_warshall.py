@@ -7,6 +7,16 @@ SHORTEST_PATH = 'path'
 
 
 def floyd_warshall(gnx: nx.Graph, weight='weight') -> Tuple[np.ndarray, list, list]:
+    """
+    Floyd-Warshall algorithm for finding shortest paths between all pairs of vertices in a graph.
+    complexity: O(|V|^3)
+    :param gnx: graph object
+    :param weight: weight key in edge data
+    :return:
+        1. dist: distance matrix
+        2. path: shortest path list
+        3. idx_to_node: index in dist/path to name of node
+    """
     # map node ids to 0-N indices
     idx_to_node = list(gnx.nodes())
     node_idx = {node_id: i for i, node_id in enumerate(idx_to_node)}
