@@ -24,6 +24,8 @@ def longest_increasing_subsequence(num_list):
     :param num_list: list of numbers
     return: longest increasing subsequence
     """
+    if len(num_list) <= 1:
+        return []
 
     progress = [NumItem(num_list[0], last_len=0, max_seq_len=0, max_end_pos=0)] + \
                [NumItem(n, last_len=-1, max_seq_len=-1, max_end_pos=-1) for n in num_list[1:]]
