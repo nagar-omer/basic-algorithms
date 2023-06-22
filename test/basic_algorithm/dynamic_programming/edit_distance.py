@@ -1,5 +1,4 @@
 from basic_algorithms.dynamic_programming.edit_distance import edit_distance
-from Levenshtein import distance
 
 
 def test_edit_distance():
