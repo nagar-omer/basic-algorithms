@@ -1,9 +1,8 @@
 import numpy as np
 from joblib import Parallel, delayed
-from scipy.interpolate import interp2d
 
 
-def split_image(image, n_rows, n_cols):
+def split_image(image: np.ndarray, n_rows: int, n_cols: int):
     """
     Split an image into n_rows x n_cols blocks
     :param image: image to split
@@ -28,7 +27,7 @@ def split_image(image, n_rows, n_cols):
     return image_blocks
 
 
-def merge_blocks(image_blocks):
+def merge_blocks(image_blocks: list):
     """
     Merge a list of image blocks into a single image
     :param image_blocks: image blocks to merge
@@ -37,7 +36,7 @@ def merge_blocks(image_blocks):
     return np.vstack([np.hstack(block_row) for block_row in image_blocks])
 
 
-def _pdf(image, bins=256, normalize=True):
+def _pdf(image: np.ndarray, bins: int = 256, normalize: bool = True):
     """
     Compute the cumulative distribution function of an image
     :param image: image to compute the cdf of
@@ -51,7 +50,7 @@ def _pdf(image, bins=256, normalize=True):
     return (pdf / np.sum(pdf)) if normalize else pdf
 
 
-def _cdf(image, bins=256, normalize=True):
+def _cdf(image: np.ndarray, bins: int = 256, normalize: bool = True):
     """
     Compute the cumulative distribution function of an image
     :param image: image to compute the cdf of
@@ -64,7 +63,7 @@ def _cdf(image, bins=256, normalize=True):
     return cdf
 
 
-def histogram_equalization(image, alpha=1.0, cdf=None):
+def histogram_equalization(image: np.ndarray, alpha: float = 1.0, cdf: np.ndarray = None):
     """
     Transform function that that results in an image with a uniform histogram
     To achieve this, a transformation T must satisfy the following conditions:
@@ -100,7 +99,7 @@ def histogram_equalization(image, alpha=1.0, cdf=None):
     return alpha * transform(image) + (1 - alpha) * image
 
 
-def block_histogram_equalization(image, n=8, alpha=1):
+def block_histogram_equalization(image: np.ndarray, n: int = 8, alpha: float = 1.):
     """
     Perform histogram equalization on
     :param image: image to equalize
@@ -119,7 +118,7 @@ def block_histogram_equalization(image, n=8, alpha=1):
     return equalized_image
 
 
-def sliding_cdf(image, n=8, n_jobs=-1):
+def sliding_cdf(image: np.ndarray, n: int = 8, n_jobs: int = -1):
     """
     Compute the cumulative distribution function of a sliding window around a pixel
     complexity: O(n^2 + n * N_pixel) | N_pixel >> n^2 -> O(n*N_pixel)
@@ -148,7 +147,7 @@ def sliding_cdf(image, n=8, n_jobs=-1):
                         + _pdf(add_col, bins=256, normalize=False)
 
     # function to compute the cdf of a sliding window for entire row (assuming window is already computed)
-    def job_sliding_pdf_block(base_hist, col_idx):
+    def job_sliding_pdf_block(base_hist: np.ndarray, col_idx: int):
         # container for the cdf of the sliding window for requested column
         col_pdf_mat = np.zeros((image.shape[0], 256))
         col_pdf_mat[0, :] = base_hist
@@ -178,7 +177,7 @@ def sliding_cdf(image, n=8, n_jobs=-1):
     return cdf_mat
 
 
-def sliding_histogram_equalization(image, n=129, alpha=1):
+def sliding_histogram_equalization(image: np.ndarray, n: int = 129, alpha: float = 1.):
     """
     Perform histogram equalization on an image using a sliding window
     :param image: image to equalize
