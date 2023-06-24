@@ -1,5 +1,6 @@
 import numpy as np
 from joblib import Parallel, delayed
+from scipy.interpolate import interp2d
 
 
 def split_image(image, n_rows, n_cols):
@@ -200,15 +201,3 @@ def sliding_histogram_equalization(image, n=129, alpha=1):
             else:
                 eq_image[i, j] = cdf[i, j][eq_image[i, j]] * 255
     return alpha * eq_image + (1 - alpha) * image
-
-
-if __name__ == '__main__':
-    import imageio.v3 as imageio
-    import matplotlib.pyplot as plt
-
-    image = imageio.imread('/Users/omernagar/Documents/Projects/basic-algorithms/basic_algorithms/classical_cv/data/lena.jpg')
-    eq_image = sliding_histogram_equalization(image)
-
-
-    plt.imshow(eq_image)
-    plt.show()
