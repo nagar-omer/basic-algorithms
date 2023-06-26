@@ -172,7 +172,6 @@ def sliding_cdf(image: np.ndarray, n: int = 8, n_jobs: int = -1):
     x = Parallel(n_jobs=n_jobs)(delayed(job_sliding_pdf_block)(pdf_mat[0, j], j) for j in range(image.shape[1]))
     pdf_mat = np.stack(x).swapaxes(0, 1)
 
-
     # convert to probabilities
     pdf_mat = pdf_mat / np.sum(pdf_mat, axis=2, keepdims=True).clip(min=1e-10)
     cdf_mat = pdf_mat.cumsum(axis=2)
@@ -264,6 +263,8 @@ def adaptive_histogram_equalization(image, n=8):
     :param n: number of blocks along each axis (default: 8)
     :return: equalized image
     """
+
+    assert image.ndim in [2, 3], 'Image must be 2 or 3 dimensional'
 
     # split image to blocks and calculate cdf for each block
     image_blocks = split_image(image, n, n)
