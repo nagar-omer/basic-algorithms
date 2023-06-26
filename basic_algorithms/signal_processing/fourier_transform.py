@@ -85,17 +85,23 @@ def idft_2d(F: np.ndarray):
     return res / (M * N)
 
 
-if __name__ == '__main__':
-    x = np.asarray([[1, 2 - 1j, -1j, -1 + 2j]]).repeat(4, 0)
-    x[1] += 0.5*x[0]
-    x[2] += 0.5*x[1]
-    x[3] += 0.5*x[2]
+def fft_1d(x: np.ndarray):
+    """
+    recursive function that follows the rule:
+    DFT[k] = <FFT[EVEN] + f * FFT[ODD]><FFT[EVEN] + f * FFT[ODD]>
+    """
+    assert len(x.shape) == 1, "Input must be 1D"
+    N = x.shape[0]
+    assert N % 2 == 0, "Input must be a power of 2"
 
-    x.clip(-1, 1)
-    y = dft_2d(x)
-    x_ = idft_2d(y)
+    # complete to power of 2
+    if N <= 2:
+        return dft_1d(x)
 
-    x_ == x
-    np.testing.assert_almost_equal(x, x_)
+    # split to and odd -> apply recursive function
+    res_even = fft_1d(x[0::2])
+    res_odd = fft_1d(x[1::2])
+    factor = np.exp(-2j*np.pi*np.arange(N)/N)
+    return np.hstack([res_even, res_even]) + factor * np.hstack([res_odd, res_odd])
 
-    e = 0
+
