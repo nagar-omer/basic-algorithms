@@ -250,7 +250,8 @@ def map_to_closest_block(height: int, width: int, n_rows: int, n_cols: int) -> C
                 boxes.append([box_vert, box_horiz, (1 - dist_vert/box_height) * (1 - dist_horiz/box_width)])
 
         # normalize weights
-        boxes = [(x, y, weight) for x, y, weight in boxes]
+        factor = 1 / np.sum([weight for _, _, weight in boxes])
+        boxes = [(x, y, weight * factor) for x, y, weight in boxes]
         return boxes
 
     return _map_func
