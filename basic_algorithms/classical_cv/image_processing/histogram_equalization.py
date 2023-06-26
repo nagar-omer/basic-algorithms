@@ -201,7 +201,7 @@ def sliding_histogram_equalization(image: np.ndarray, n: int = 129, alpha: float
                     eq_image[i, j, k] = cdf[i, j][image[i, j, k]] * 255
             else:
                 eq_image[i, j] = cdf[i, j][eq_image[i, j]] * 255
-    return alpha * eq_image + (1 - alpha) * image
+    return (alpha * eq_image + (1 - alpha) * image).astype(np.uint8)
 
 
 def map_to_closest_block(height: int, width: int, n_rows: int, n_cols: int) -> Callable:
