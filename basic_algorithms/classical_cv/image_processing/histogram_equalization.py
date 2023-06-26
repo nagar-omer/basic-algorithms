@@ -1,3 +1,5 @@
+from typing import Callable
+
 import numpy as np
 from joblib import Parallel, delayed
 
@@ -15,8 +17,8 @@ def split_image(image: np.ndarray, n_rows: int, n_cols: int):
     height, width = image.shape[:2]
 
     # get row and column split indices
-    row_splits = np.linspace(0, height, n_rows).astype(np.uint32)
-    col_splits = np.linspace(0, width, n_cols).astype(np.uint32)
+    row_splits = np.linspace(0, height, n_rows + 1).astype(np.uint32)
+    col_splits = np.linspace(0, width, n_cols + 1).astype(np.uint32)
 
     # split the image into blocks
     image_blocks = []
@@ -200,3 +202,85 @@ def sliding_histogram_equalization(image: np.ndarray, n: int = 129, alpha: float
             else:
                 eq_image[i, j] = cdf[i, j][eq_image[i, j]] * 255
     return alpha * eq_image + (1 - alpha) * image
+
+
+def map_to_closest_block(height: int, width: int, n_rows: int, n_cols: int) -> Callable:
+    """
+    Map each pixel to up to closest 2x2 blocks according to distance from block center
+    :param height: original image height
+    :param width: original image width
+    :param n_rows: n blocks along rows
+    :param n_cols: n blocks along cols
+    :return: mapping function from each pixel to closest 2x2 blocks
+    """
+
+    # calculate block centers
+    row_splits = np.linspace(0, height, n_rows + 1).astype(np.uint32)
+    col_splits = np.linspace(0, width, n_cols + 1).astype(np.uint32)
+
+    row_center = row_splits[:-1] + (row_splits[1:] - row_splits[:-1]) // 2
+    col_center = col_splits[:-1] + (col_splits[1:] - col_splits[:-1]) // 2
+
+    # calculate closest 2 blocks for each pixel - along rows and cols
+    row_dist_from_center = np.abs(np.expand_dims(np.arange(height), 1).repeat(row_center.shape[0], 1) -
+                                  np.expand_dims(row_center, 0).repeat(height, 0))
+    row_top_two = np.argsort(row_dist_from_center, axis=1)[:, :2]
+    col_dist_from_center = np.abs(np.expand_dims(np.arange(width), 1).repeat(col_center.shape[0], 1) -
+                                  np.expand_dims(col_center, 0).repeat(width, 0))
+    col_top_two = np.argsort(col_dist_from_center, axis=1)[:, :2]
+
+    box_height, box_width = height // n_rows, width // n_cols
+
+    # mapping function from each pixel to closest 2x2 blocks
+    def _map_func(i, j):
+        # get closest 2 blocks along rows and cols and pixel distance from their center
+        closest_boxes_vertical = row_top_two[i]
+        closest_boxes_horizontal = col_top_two[j]
+        dist_vertical = row_dist_from_center[i, row_top_two[i]]
+        dist_horizontal = col_dist_from_center[j, col_top_two[j]]
+
+        # get boxes
+        boxes = []
+        for box_vert, dist_vert in zip(closest_boxes_vertical, dist_vertical):
+            for box_horiz, dist_horiz in zip(closest_boxes_horizontal, dist_horizontal):
+                # drop if distance from center is larger than box size
+                if dist_horiz > box_height or dist_vert > box_width:
+                    continue
+
+                boxes.append([box_vert, box_horiz, (dist_vert * dist_horiz) / (box_height * box_width)])
+
+        # normalize weights
+        total_weight = np.sum([b[2] for b in boxes])
+        boxes = [(x, y, weight / total_weight) for x, y, weight in boxes]
+        return boxes
+
+    return _map_func
+
+
+def adaptive_histogram_equalization(image, n=8):
+    """
+    Perform adaptive histogram equalization on an image
+    :param image: image to equalize
+    :param n: number of blocks along each axis (default: 8)
+    :return: equalized image
+    """
+
+    # split image to blocks and calculate cdf for each block
+    image_blocks = split_image(image, n, n)
+    cdf_blocks = np.zeros((n, n, 256))
+    for i in range(n):
+        for j in range(n):
+            cdf_blocks[i, j] = _cdf(image_blocks[i][j])
+
+    # map each pixel to closest 2x2 blocks
+    spline_map = map_to_closest_block(*image.shape[:2], n, n)
+
+    # apply equalization
+    equalized_image = np.zeros(image.shape, dtype=np.uint8)
+    for i in range(image.shape[0]):
+        for j in range(image.shape[1]):
+            boxes = spline_map(i, j)
+            for box_x, box_y, weight in boxes:
+                equalized_image[i, j] += (255 * weight * cdf_blocks[box_x, box_y][image[i, j]]).astype(np.uint8)
+
+    return equalized_image
