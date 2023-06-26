@@ -247,11 +247,10 @@ def map_to_closest_block(height: int, width: int, n_rows: int, n_cols: int) -> C
                 if dist_horiz > box_height or dist_vert > box_width:
                     continue
 
-                boxes.append([box_vert, box_horiz, (dist_vert * dist_horiz) / (box_height * box_width)])
+                boxes.append([box_vert, box_horiz, (1 - dist_vert/box_height) * (1 - dist_horiz/box_width)])
 
         # normalize weights
-        total_weight = np.sum([b[2] for b in boxes])
-        boxes = [(x, y, weight / total_weight) for x, y, weight in boxes]
+        boxes = [(x, y, weight) for x, y, weight in boxes]
         return boxes
 
     return _map_func
@@ -284,3 +283,15 @@ def adaptive_histogram_equalization(image, n=8):
                 equalized_image[i, j] += (255 * weight * cdf_blocks[box_x, box_y][image[i, j]]).astype(np.uint8)
 
     return equalized_image
+
+
+if __name__ == '__main__':
+    import imageio.v3 as imageio
+    import matplotlib.pyplot as plt
+
+    image = imageio.imread('/Users/omernagar/Documents/Projects/basic-algorithms/basic_algorithms/classical_cv/data/lena.jpg')
+    eq_image = adaptive_histogram_equalization(image, n=16)
+
+    plt.imshow(eq_image)
+    plt.show()
+    e = 0
