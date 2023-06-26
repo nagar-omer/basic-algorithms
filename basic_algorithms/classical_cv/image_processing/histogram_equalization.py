@@ -289,9 +289,32 @@ if __name__ == '__main__':
     import imageio.v3 as imageio
     import matplotlib.pyplot as plt
 
-    image = imageio.imread('/Users/omernagar/Documents/Projects/basic-algorithms/basic_algorithms/classical_cv/data/lena.jpg')
-    eq_image = adaptive_histogram_equalization(image, n=16)
+    image = imageio.imread('../data/lena.jpg')
 
-    plt.imshow(eq_image)
+    eq_image1 = histogram_equalization(image)
+    eq_image2 = block_histogram_equalization(image)
+    eq_image3 = sliding_histogram_equalization(image)
+    eq_image4 = adaptive_histogram_equalization(image)
+
+    plt.imshow(image)
+    plt.title('Original Image')
     plt.show()
+
+    plt.imshow(eq_image1)
+    plt.title('Histogram Equalization')
+    plt.show()
+
+    plt.imshow(eq_image2)
+    plt.title('Block Histogram Equalization')
+    plt.show()
+
+    plt.imshow(eq_image3)
+    plt.title('Sliding Window Histogram Equalization')
+    plt.show()
+
+    plt.imshow(eq_image4)
+    plt.title('Adaptive Histogram Equalization')
+    plt.show()
+
+
     e = 0
