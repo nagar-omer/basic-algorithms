@@ -98,7 +98,7 @@ def histogram_equalization(image: np.ndarray, alpha: float = 1.0, cdf: np.ndarra
     def transform(pixel):
         return np.uint8(255 * image_cdf[pixel])
 
-    return alpha * transform(image) + (1 - alpha) * image
+    return (alpha * transform(image) + (1 - alpha) * image).astype(np.uint8)
 
 
 def block_histogram_equalization(image: np.ndarray, n: int = 8, alpha: float = 1.):
@@ -315,6 +315,3 @@ if __name__ == '__main__':
     plt.imshow(eq_image4)
     plt.title('Adaptive Histogram Equalization')
     plt.show()
-
-
-    e = 0
