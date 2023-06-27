@@ -73,6 +73,53 @@ def high_pass_filter(image: np.ndarray, omega: float, kernel_size: int = 15, n_j
     return filtered
 
 
+def band_reject_filter(image: np.ndarray, omega_low: float, omega_high: float,
+                       kernel_size: int = 15, n_jobs: int = -1):
+    """
+    Apply a band-reject filter to an image.
+    :param image: The image to apply the band-reject filter to.
+    :param omega_low: The frequency of the low-pass filter (in radians).
+    :param omega_high: The frequency of the high-pass filter (in radians).
+    :param kernel_size: The size of the sinc kernel.
+    :param n_jobs: The number of jobs to run in parallel.
+    :return: filtered image.
+    """
+    # get kernels for low-pass and high-pass
+    low_kernel = sinc_kernel(omega_low, N=kernel_size)
+    high_kernel = unit_impulse_kernel(kernel_size) - sinc_kernel(omega_high, N=kernel_size)
+
+    # compute band-pass kernel & normalize
+    band_pass_kernel = high_kernel + low_kernel
+
+    # apply band-pass filter
+    filtered = apply_filter(image, band_pass_kernel, n_jobs=n_jobs)
+    return filtered
+
+
+def band_pass_filter(image: np.ndarray, omega_low: float, omega_high: float,
+                     kernel_size: int = 15, n_jobs: int = -1):
+    """
+    Apply a band-pass filter to an image.
+    :param image: image to apply the band-pass filter to.
+    :param omega_low: low-pass filter frequency (in radians).
+    :param omega_high: high-pass filter frequency (in radians).
+    :param kernel_size: size of the sinc kernel.
+    :param n_jobs: number of jobs to run in parallel.
+    :return: filtered image.
+    """
+
+    # get kernels for low-pass and high-pass
+    low_kernel = sinc_kernel(omega_low, N=kernel_size)
+    high_kernel = sinc_kernel(omega_high, N=kernel_size)
+
+    # compute band-pass kernel & normalize
+    band_pass_kernel = high_kernel - low_kernel
+
+    # apply band-pass filter
+    filtered = apply_filter(image, band_pass_kernel, n_jobs=n_jobs)
+    return filtered
+
+
 def DoG(image: np.ndarray):
     """
     Computes the Difference of Gaussian's (DoG) of an image.
@@ -90,3 +137,16 @@ def LoG(image: np.ndarray):
     """
     pass
 
+
+if __name__ == '__main__':
+    import imageio.v3 as imageio
+    import matplotlib.pyplot as plt
+
+    image = imageio.imread('../data/lena.jpg')
+
+    plt.imshow(image)
+    plt.show()
+
+    image = band_reject_filter(image, omega_low=0.0000001, omega_high=3)
+    plt.imshow(image)
+    plt.show()
