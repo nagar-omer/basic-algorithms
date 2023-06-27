@@ -94,7 +94,7 @@ def fft_1d(x: np.ndarray):
     N = x.shape[0]
     assert N % 2 == 0, "Input must be a power of 2"
 
-    # complete to power of 2
+    # stop condition
     if N <= 2:
         return dft_1d(x)
 
@@ -105,3 +105,12 @@ def fft_1d(x: np.ndarray):
     return np.hstack([res_even, res_even]) + factor * np.hstack([res_odd, res_odd])
 
 
+def ifft_1d(x: np.ndarray):
+    """
+    recursive function that follows the rule:
+    IDFT[n] = <IFFT[EVEN] + f * IFFT[ODD]><FFT[EVEN] + f * IFFT[ODD]>
+    NOTE out[k] == out[k + N//2]
+    """
+    assert len(x.shape) == 1, "Input must be 1D"
+    N = x.shape[0]
+    return np.conj(fft_1d(np.conj(x))) / N
