@@ -107,9 +107,7 @@ def fft_1d(x: np.ndarray):
 
 def ifft_1d(x: np.ndarray):
     """
-    recursive function that follows the rule:
-    IDFT[n] = <IFFT[EVEN] + f * IFFT[ODD]><FFT[EVEN] + f * IFFT[ODD]>
-    NOTE out[k] == out[k + N//2]
+    IFFT implementation of 1D signal  using recursive FFT
     """
     assert len(x.shape) == 1, "Input must be 1D"
     N = x.shape[0]
