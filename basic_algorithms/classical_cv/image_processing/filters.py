@@ -13,25 +13,25 @@ def unit_impulse_kernel(N: int):
     return kernel
 
 
-def sinc_kernel(omega: float, N: int):
+def sinc_kernel(omega: float, kernel_size: int):
     """
     Create a sinc kernel of size N x N, using Bessel function
     :param omega: angular frequency (in radians)
-    :param N: kernel size
+    :param kernel_size: kernel size
     :return: sinc kernel
     """
 
     # N must be odd
-    assert N % 2 == 1, "N must be odd"
+    assert kernel_size % 2 == 1, "N must be odd"
 
     # Compute sinc kernel
     def _sinc(x, y):
-        z = np.sqrt((x - (N - 1)/2) ** 2 + (y - (N - 1)/2) ** 2)
+        z = np.sqrt((x - (kernel_size - 1) / 2) ** 2 + (y - (kernel_size - 1) / 2) ** 2)
         out = omega * special.j1(omega * z) / (2 * np.pi * z)
         return np.nan_to_num(out, 0)
 
     # apply sinc kernel to each pixel
-    kernel = np.fromfunction(_sinc, [N, N])
+    kernel = np.fromfunction(_sinc, [kernel_size, kernel_size])
     return kernel / kernel.sum()
 
 
@@ -59,7 +59,7 @@ def low_pass_filter(image: np.ndarray, omega: float, kernel_size: int = 15, n_jo
     """
 
     # get kernel
-    kernel = sinc_kernel(omega, N=kernel_size)
+    kernel = sinc_kernel(omega, kernel_size=kernel_size)
     filtered = apply_filter(image, kernel, n_jobs=n_jobs)
     return filtered
 
@@ -68,7 +68,7 @@ def high_pass_filter(image: np.ndarray, omega: float, kernel_size: int = 15, n_j
     """
     Apply a high-pass filter to an image.
     """
-    kernel = unit_impulse_kernel(kernel_size) - sinc_kernel(omega, N=kernel_size)
+    kernel = unit_impulse_kernel(kernel_size) - sinc_kernel(omega, kernel_size=kernel_size)
     filtered = apply_filter(image, kernel, n_jobs=n_jobs)
     return filtered
 
@@ -85,8 +85,8 @@ def band_reject_filter(image: np.ndarray, omega_low: float, omega_high: float,
     :return: filtered image.
     """
     # get kernels for low-pass and high-pass
-    low_kernel = sinc_kernel(omega_low, N=kernel_size)
-    high_kernel = unit_impulse_kernel(kernel_size) - sinc_kernel(omega_high, N=kernel_size)
+    low_kernel = sinc_kernel(omega_low, kernel_size=kernel_size)
+    high_kernel = unit_impulse_kernel(kernel_size) - sinc_kernel(omega_high, kernel_size=kernel_size)
 
     # compute band-pass kernel & normalize
     band_pass_kernel = high_kernel + low_kernel
@@ -109,8 +109,8 @@ def band_pass_filter(image: np.ndarray, omega_low: float, omega_high: float,
     """
 
     # get kernels for low-pass and high-pass
-    low_kernel = sinc_kernel(omega_low, N=kernel_size)
-    high_kernel = sinc_kernel(omega_high, N=kernel_size)
+    low_kernel = sinc_kernel(omega_low, kernel_size=kernel_size)
+    high_kernel = sinc_kernel(omega_high, kernel_size=kernel_size)
 
     # compute band-pass kernel & normalize
     band_pass_kernel = high_kernel - low_kernel
@@ -120,16 +120,40 @@ def band_pass_filter(image: np.ndarray, omega_low: float, omega_high: float,
     return filtered
 
 
-def DoG(image: np.ndarray):
+def gaussian_kernel(sigma: float, kernel_size: int):
+    def _2d_gaussian(x, y):
+
+        nominator = np.exp(-((x - (kernel_size - 1) / 2) ** 2 + (y - (kernel_size - 1) / 2) ** 2) / (2 * sigma**2))
+        denominators = 2 * np.pi * sigma ** 2
+        return nominator / denominators
+
+    kernel = np.fromfunction(_2d_gaussian, [kernel_size, kernel_size])
+    return kernel / kernel.sum()
+
+
+def dog_filter(image: np.ndarray, sigma_low: int, sigma_high: int, kernel_size: int = 15, n_jobs: int = -1):
     """
-    Computes the Difference of Gaussian's (DoG) of an image.
+    Computes the Difference of Gaussian's (DoG) of an image - type of band-pass filter.
     :param image: The image to compute the DoG of.
+    :param sigma_low: low-gaussian sigma.
+    :param sigma_high: high-gaussian sigma.
+    :param kernel_size: kernel dim is - kernel size x kernel size.
+    :param n_jobs: Number of jobs to run in parallel.
     :return: The DoG of the image.
     """
-    pass
+    assert kernel_size % 2 == 1, "kernel_size must be odd"
+    assert sigma_low > 0 and sigma_high > 0, "sigma_low and sigma_high must be positive"
+    assert sigma_low < sigma_high, "sigma_low must be smaller than sigma_high"
+
+    kernel_low = gaussian_kernel(sigma_low, kernel_size=kernel_size)
+    kernel_high = gaussian_kernel(sigma_high, kernel_size=kernel_size)
+
+    dog_kernel = kernel_low - kernel_high
+    filtered = apply_filter(image, dog_kernel, n_jobs=n_jobs)
+    return filtered
 
 
-def LoG(image: np.ndarray):
+def log_filter(image: np.ndarray):
     """
     Computes the Laplacian of Gaussian's (LoG) of an image.
     :param image: The image to compute the LoG of.
@@ -147,6 +171,6 @@ if __name__ == '__main__':
     plt.imshow(image)
     plt.show()
 
-    image = band_reject_filter(image, omega_low=0.0000001, omega_high=3)
+    image = dog_filter(image, sigma_low=2, sigma_high=4, kernel_size=51)
     plt.imshow(image)
     plt.show()
