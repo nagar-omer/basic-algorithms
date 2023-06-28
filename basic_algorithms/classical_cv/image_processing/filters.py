@@ -237,7 +237,8 @@ def sobel_filter(image: np.ndarray, threshold=None, return_direction=False):
     """
 
     # convert to grayscale
-    grayscale_image = color.rgb2gray(image)
+    grayscale_image = color.rgb2gray(image) if image.ndim == 3 else image
+
     # compose kernels
     kernel_x = np.asarray([[1, 0, -1], [2, 0, -2], [1, 0, -1]])
     kernel_y = np.asarray([[1, 2, 1], [0, 0, 0], [-1, -2, -1]])
