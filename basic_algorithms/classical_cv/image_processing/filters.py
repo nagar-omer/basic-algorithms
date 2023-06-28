@@ -121,14 +121,19 @@ def band_pass_filter(image: np.ndarray, omega_low: float, omega_high: float,
 
 
 def gaussian_kernel(sigma: float, kernel_size: int):
-    def _2d_gaussian(x, y):
+    """
+    Compose a gaussian kernel of size N x N.
+    """
 
+    # 2d gaussian kernel function
+    def _2d_gaussian(x, y):
         nominator = np.exp(-((x - (kernel_size - 1) / 2) ** 2 + (y - (kernel_size - 1) / 2) ** 2) / (2 * sigma**2))
         denominators = 2 * np.pi * sigma ** 2
         return nominator / denominators
 
+    # compose kernel & normalize
     kernel = np.fromfunction(_2d_gaussian, [kernel_size, kernel_size])
-    return kernel / kernel.sum()
+    return kernel
 
 
 def dog_filter(image: np.ndarray, sigma_low: int, sigma_high: int, kernel_size: int = 15, n_jobs: int = -1):
@@ -153,24 +158,69 @@ def dog_filter(image: np.ndarray, sigma_low: int, sigma_high: int, kernel_size: 
     return filtered
 
 
-def log_filter(image: np.ndarray):
+def laplacian_filter(image: np.ndarray, connectivity: int = 4):
+    """
+    Laplacian filter of an image - edge filter (a bit noisy - consider using gauss filter afterward).
+    :param image: The image to apply the Laplacian filter to.
+    :param connectivity: The number of neighbours to consider - 4 or 8.
+    :return: The Laplacian of the image.
+    """
+
+    # compose kernel
+    kernel = np.ones((3, 3))
+    if connectivity == 4:
+        kernel[1, 1] = -4
+        kernel[0, 0] = 0
+        kernel[0, 2] = 0
+        kernel[2, 0] = 0
+        kernel[2, 2] = 0
+    elif connectivity == 8:
+        kernel[1, 1] = -8
+    else:
+        raise NotImplementedError
+
+    # apply kernel to image
+    filtered = apply_filter(image, kernel)
+    return filtered
+
+
+def laplacian_of_gaussian_kernel(sigma: float, kernel_size: int):
+    """
+    Compose a Laplacian of Gaussian's (Log) filter
+    :param sigma: gaussian sigma.
+    :param kernel_size: kernel dim is - kernel size x kernel size.
+    :return: The Laplacian of the gaussian filter.
+    """
+
+    # 2D laplacian of gaussian function
+    def _2d_laplace_gauss(x, y):
+        x = x - (kernel_size - 1) / 2
+        y = y - (kernel_size - 1) / 2
+
+        return (-1 / (np.pi * sigma ** 4)) * \
+            (1 - (x ** 2 + y ** 2) / (2 * sigma ** 2)) * \
+            np.exp(-(x ** 2 + y ** 2) / (2 * sigma ** 2))
+
+    # compose kernel
+    kernel = np.fromfunction(_2d_laplace_gauss, [kernel_size, kernel_size])
+    return kernel
+
+
+def log_filter(image: np.ndarray, sigma: float = 1.5, kernel_size: int = 9, n_jobs: int = -1):
     """
     Computes the Laplacian of Gaussian's (LoG) of an image.
     :param image: The image to compute the LoG of.
+    :param sigma: gaussian sigma.
+    :param kernel_size: kernel dim is - kernel size x kernel size.
+    :param n_jobs: Number of jobs to run in parallel.
     :return: The LoG of the image.
     """
-    pass
+    assert kernel_size % 2 == 1, "kernel_size must be odd"
+    assert kernel_size > 1, "kernel_size must be greater than 1"
+    assert sigma > 0, "sigma must be positive"
 
+    # compose kernel
+    kernel = laplacian_of_gaussian_kernel(sigma, kernel_size)
 
-if __name__ == '__main__':
-    import imageio.v3 as imageio
-    import matplotlib.pyplot as plt
-
-    image = imageio.imread('../data/lena.jpg')
-
-    plt.imshow(image)
-    plt.show()
-
-    image = dog_filter(image, sigma_low=2, sigma_high=4, kernel_size=51)
-    plt.imshow(image)
-    plt.show()
+    filtered = apply_filter(image, kernel, n_jobs=n_jobs)
+    return filtered
