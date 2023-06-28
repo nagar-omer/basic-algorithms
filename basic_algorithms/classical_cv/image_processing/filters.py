@@ -2,6 +2,7 @@ import numpy as np
 from scipy import special
 from scipy.signal import fftconvolve
 from joblib import Parallel, delayed
+from skimage import color
 
 
 def unit_impulse_kernel(N: int):
@@ -224,3 +225,34 @@ def log_filter(image: np.ndarray, sigma: float = 1.5, kernel_size: int = 9, n_jo
 
     filtered = apply_filter(image, kernel, n_jobs=n_jobs)
     return filtered
+
+
+def sobel_filter(image: np.ndarray, threshold=None, return_direction=False):
+    """
+    Edge detection filter that also returns the direction of change.
+    :param image: The image to apply the Sobel filter to.
+    :param threshold: threshold to use after applying filters, if None then set to b q-10 of filtered image.
+    :param return_direction: if True then return the direction of change. (angles in radians)
+    :return: The Sobel of the image.
+    """
+
+    # convert to grayscale
+    grayscale_image = color.rgb2gray(image)
+    # compose kernels
+    kernel_x = np.asarray([[1, 0, -1], [2, 0, -2], [1, 0, -1]])
+    kernel_y = np.asarray([[1, 2, 1], [0, 0, 0], [-1, -2, -1]])
+
+    # apply filters
+    filtered_x = apply_filter(grayscale_image, kernel_x, n_jobs=1)
+    filtered_y = apply_filter(grayscale_image, kernel_y, n_jobs=1)
+    filtered = np.sqrt(filtered_x ** 2 + filtered_y ** 2)
+
+    # thresholding
+    if threshold is None:
+        threshold = np.percentile(filtered, 10)
+
+    # compute direction of change
+    if return_direction:
+        direction = np.arctan2(filtered_y, filtered_x)
+        return filtered, direction
+    return np.maximum(filtered, threshold)

@@ -5,3 +5,4 @@ imageio~=2.31.1
 matplotlib~=3.7.1
 joblib~=1.2.0
 scipy~=1.10.1
+scikit-image==0.21.0
