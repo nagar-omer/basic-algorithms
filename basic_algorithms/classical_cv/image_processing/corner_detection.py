@@ -1,21 +1,21 @@
 import numpy as np
 from skimage import color
-
 from basic_algorithms.classical_cv.image_processing.filters import apply_filter, gaussian_kernel
+from basic_algorithms.classical_cv.image_processing import non_maximal_suppression
 
 
-def haris_coroner_detector(image: np.ndarray, k=0.05, sigma_window=3, window_size=11, threshold=None):
+def haris_coroner_detector(image: np.ndarray, k=0.05, sigma_window=3, window_size=51, threshold=None, nms_window_size=101):
     """
     good explanartion here: https://www.baeldung.com/cs/harris-corner-detection
     :param image: input image
     :param sigma_window: sigma for gaussian filter used to smooth partial derivatives
     :param window_size: size of the sliding window used to calculate partial derivatives
+    :param threshold: threshold for non-maximal suppression
+    :param nms_window_size: size of the sliding window used to calculate non-maximal suppression
     :param k: k is a constant to chose in the range [0.04, 0.06].
               used as a factor in harris score: det(M) - k * tr(M)^2
-
     """
-
-    assert k >= 0.04 and k <= 0.06, "k should be in range of [0.04, 0.06]"
+    assert 0.04 <= k <= 0.06, "k should be in range of [0.04, 0.06]"
 
     # convert to grayscale
     grayscale_image = color.rgb2gray(image) if image.ndim == 3 else image
@@ -43,27 +43,21 @@ def haris_coroner_detector(image: np.ndarray, k=0.05, sigma_window=3, window_siz
 
     # calculate eigenvalues & and Haris score
     eigvals, _ = np.linalg.eig(hessian)
-    herris_score = eigvals[..., 0] * eigvals[..., 1] - k * np.trace(eigvals[..., 0] + eigvals[..., 1])**2
+    haris_score = eigvals[..., 0] * eigvals[..., 1] - k * np.trace(eigvals[..., 0] + eigvals[..., 1])**2
 
     # apply thresholding
-    threshold = np.quantile(herris_score.flatten(), 0.1) if threshold is None else threshold
-    corners = np.maximum(herris_score,  threshold)
+    haris_score = (haris_score - haris_score.min()) / (haris_score.max() - haris_score.min())
+    threshold = np.quantile(haris_score.flatten(), 0.9) if threshold is None else threshold
+    corner_candidates = haris_score.copy()
+    corner_candidates[haris_score < threshold] = 0
 
     # apply non maximum suppression
-
+    # x1, x2, y1, y2 for each pixel
+    def pixel_window(x, y):
+        margin = nms_window_size // 2
+        return np.asarray([np.clip(x - margin, 0, image.shape[0]), np.clip(y - margin, 0, image.shape[1]),
+                           np.clip(x + margin, 0, image.shape[0]), np.clip(y + margin, 0, image.shape[1])])
+    sliding_window = np.transpose(np.fromfunction(pixel_window, image.shape[:2]), (1, 2, 0))
+    corners = non_maximal_suppression.nms(corner_candidates, sliding_window)
     return corners
-    e = 0
 
-
-if __name__ == '__main__':
-    import imageio.v3 as imageio
-    import matplotlib.pyplot as plt
-
-    image = imageio.imread('../data/coin.jpg')
-
-    # plt.imshow(image)
-    # plt.show()
-
-    image = haris_coroner_detector(image, window_size=11, sigma_window=3, k=0.06)
-    plt.imshow(image, cmap='gray')
-    plt.show()
