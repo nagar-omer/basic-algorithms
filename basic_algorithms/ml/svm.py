@@ -67,7 +67,7 @@ class BinarySVMClassifier:
         prediction_grad = 0 if (y * y_hat > self._margin) else -y * x
         return prediction_grad + regularization_grad
 
-    def transform_sign(self, Y: np.ndarray):
+    def _transform_sign(self, Y: np.ndarray):
         """
         Transform Y to {-1, 1}
         :param Y: ground truth
@@ -83,7 +83,7 @@ class BinarySVMClassifier:
         :param verbose: report progress and metrics (default: True)
         """
         # transform Y to {-1, 1}
-        Y = self.transform_sign(Y)
+        Y = self._transform_sign(Y)
         assert set(np.unique(Y)).intersection({-1, 1}) == {-1, 1}, 'Y must be binary {-1, 1}'
 
         # init progress bar
