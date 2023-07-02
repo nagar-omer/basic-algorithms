@@ -104,7 +104,7 @@ class BinarySVMClassifier:
             for x, y in zip(X, Y):
                 y_hat = np.dot(self._weights, x)
                 total_loss += self._criterion(y, y_hat)
-                grad = self._grad(x, y, y_hat, reg_decay=1/iter)
+                grad = self._grad(x, y, y_hat)
                 self._weights = self._weights - self._lr * grad
 
             # check convergence / max iterations reached
