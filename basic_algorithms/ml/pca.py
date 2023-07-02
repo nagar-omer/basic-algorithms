@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class PCA_:
+class PCA:
     def __init__(self, n_components, bias=False):
         self.n_components = n_components
         self._mat_change_basis = None
