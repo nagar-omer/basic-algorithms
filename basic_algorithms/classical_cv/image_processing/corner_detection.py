@@ -4,7 +4,7 @@ from basic_algorithms.classical_cv.image_processing.filters import apply_filter,
 from basic_algorithms.classical_cv.image_processing import non_maximal_suppression
 
 
-def haris_coroner_detector(image: np.ndarray, k=0.05, sigma_window=3, window_size=51, threshold=None, nms_window_size=101):
+def haris_coroner_detector(image: np.ndarray, k=0.06, sigma_window=3, window_size=51, threshold=None, nms_window_size=101):
     """
     good explanartion here: https://www.baeldung.com/cs/harris-corner-detection
     :param image: input image
