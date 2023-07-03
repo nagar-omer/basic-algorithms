@@ -8,9 +8,9 @@ def line_hough_transform(image, theta_range=None, d_range=None, n_theta=None, n_
     # set parameters
     height, width = image.shape[:2]
     d_range = [-np.sqrt(height**2 + width**2), np.sqrt(height**2 + width**2)] if d_range is None else d_range
-    theta_range = [1e-1, 2 * np.pi] if theta_range is None else theta_range
+    theta_range = [11.25, 180] if theta_range is None else theta_range
     n_theta = 16 if n_theta is None else n_theta
-    n_rho = int(np.sqrt(height**2 + width**2) / 8) if n_rho is None else n_rho
+    n_rho = int(np.sqrt(height**2 + width**2) / 1) if n_rho is None else n_rho
 
     # hough space matrix
     theta_axis = np.linspace(theta_range[0], theta_range[1], n_theta)
@@ -39,39 +39,40 @@ def line_hough_transform(image, theta_range=None, d_range=None, n_theta=None, n_
 
     i_theta, i_rho = np.where(hough_space >= np.quantile(hough_space, 0.9))
     theta, rho = theta_axis[i_theta], rho_axis[i_rho]
-    convert_hough_space_to_mask(hough_space, theta_axis, rho_axis, image.shape)
+    convert_hough_space_to_mask(edges, theta, rho, image.shape)
 
 
-def draw_line(image, theta, rho):
+def draw_line(image, edges, theta, rho):
     """
     Draws a line on the image.
     """
     # get pixel coordinates
 
-    x = np.arange(image.shape[0])
+    new_lines = np.zeros(edges.shape, dtype=np.uint8)
+    x = np.arange(edges.shape[1])
     y = ((rho - x * np.cos(theta)) / np.sin(theta)).round()
 
-    to_draw = np.where(np.logical_and(y >= 0, y < image.shape[1]))
-    x, y = x[to_draw], y[to_draw]
+    to_draw = np.where(np.logical_and(y >= 0, y < edges.shape[0]))
+    x, y = x[to_draw].astype(np.uint32), y[to_draw].astype(np.uint32)
+    new_lines[y, x] = 1
+    # new_lines = np.minimum(new_lines, edges)
+    return np.maximum(image, new_lines)
+
+
+def convert_hough_space_to_mask(edges, theta_axis, rho_axis, shape):
+    mask = np.zeros(shape[:2], dtype=np.uint8)
+
+    for theta in theta_axis:
+        for rho in rho_axis:
+            mask = draw_line(mask, edges, theta, rho)
     e = 0
-
-
-def convert_hough_space_to_mask(hough_space, theta_axis, rho_axis, shape):
-    mask = np.zeros(shape, dtype=np.uint8)
-
-    i_theta, i_rho = np.where(hough_space >= np.quantile(hough_space, 0.9))
-    theta, rho = theta_axis[i_theta], rho_axis[i_rho]
-
-    for i_theta, theta in enumerate(theta_axis):
-        for i_rho, rho in enumerate(rho_axis):
-            draw_line(mask, theta, rho)
 
 
 if __name__ == '__main__':
     import imageio.v3 as imageio
     import matplotlib.pyplot as plt
 
-    image = imageio.imread('../data/coin.jpg')
+    image = imageio.imread('../data/charuco_board.png')
 
     # plt.imshow(image)
     # plt.show()
