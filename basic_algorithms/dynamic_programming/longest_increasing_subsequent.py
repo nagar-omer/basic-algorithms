@@ -24,6 +24,8 @@ def longest_increasing_subsequence(num_list):
     :param num_list: list of numbers
     return: longest increasing subsequence
     """
+    assert len(num_list) > 1, 'num_list must have at least two elements'
+
     if len(num_list) <= 1:
         return []
 

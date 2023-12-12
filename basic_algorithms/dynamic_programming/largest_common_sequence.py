@@ -72,13 +72,5 @@ def largest_common_sequence(s1, s2):
                 else:
                     lcm_track_matrix[i][j] = [i-1, j-1, 0]
 
-
     lcms = reconstruct_lcm(s1, s2, lcm_track_matrix, lcm_matrix[-1, -1])
     return lcms
-
-
-if __name__ == '__main__':
-    s1 = 'bdcbdcdc'
-    s2 = 'bdcffcdc'
-    print(largest_common_sequence(s1, s2))
-    e = 0
