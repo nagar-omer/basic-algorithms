@@ -132,6 +132,13 @@ class binarySearchTree:
         return node
 
     def to_networkx(self, node=None, gnx=None, parent_id=None):
+        """
+        Convert the tree to a networkx graph
+        :param node: node to start from
+        :param gnx: accumulated graph
+        :param parent_id: parent node id
+        :return: networkx graph
+        """
         if node is None:
             node = self._root if node is None else node
             gnx = nx.DiGraph() if gnx is None else gnx
@@ -171,6 +178,17 @@ class binarySearchTree:
                    (children[1], children[0])
 
     def _get_pos(self, gnx: nx.DiGraph, node=None, pos_dict=None, depth_dict=None, max_depth=None, horizontal_spacing=1, vertical_spacing=1):
+        """
+        Get the position of each node in the graph so it can be drawn as a tree
+        :param gnx: the graph as a networkx DiGraph
+        :param node: current node to get position for
+        :param pos_dict: accumulated position dictionary
+        :param depth_dict: dictionary of node depths (calculated once at the beginning)
+        :param max_depth: maximum depth of the tree (calculated once at the beginning)
+        :param horizontal_spacing: minimum horizontal spacing between nodes (on leaf level)
+        :param vertical_spacing: vertical spacing between nodes
+        :return: position dictionary on 2D plane
+        """
         root_id = [node for node in gnx.nodes if gnx.in_degree(node) == 0][0]
         if node is None:
             depth_dict = nx.shortest_path_length(gnx, source=root_id)
@@ -189,6 +207,10 @@ class binarySearchTree:
         return pos_dict
 
     def draw(self):
+        """
+        Draw the tree using networkx
+        :return:
+        """
         gnx = self.to_networkx()
         gnx_depth = nx.dag_longest_path_length(gnx)
         n_leafs = len([node for node in gnx.nodes if gnx.out_degree(node) == 0])
@@ -218,4 +240,3 @@ if __name__ == '__main__':
         bst.insert(np.random.randint(100))
 
     gnx = bst.draw()
-    e = 0
