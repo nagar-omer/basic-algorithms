@@ -1,4 +1,4 @@
-from basic_algorithms.search.merge_sort import merge_sorted_arrays, merge_sort
+from basic_algorithms.sort.merge_sort import merge_sorted_arrays, merge_sort
 import numpy as np
 
 

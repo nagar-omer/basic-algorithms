@@ -1,5 +1,5 @@
 import pytest
-from basic_algorithms.search.quick_sort import _pick_pivot, quick_sort
+from basic_algorithms.sort.quick_sort import _pick_pivot, quick_sort
 import numpy as np
 
 

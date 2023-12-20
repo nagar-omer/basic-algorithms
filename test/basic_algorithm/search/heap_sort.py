@@ -1,4 +1,4 @@
-from basic_algorithms.search.heap_sort import Heap, heap_sort
+from basic_algorithms.sort.heap_sort import Heap, heap_sort
 import numpy as np
 
 

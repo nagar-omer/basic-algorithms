@@ -1,4 +1,4 @@
-from basic_algorithms.search.bubble_sort import bubble_sort
+from basic_algorithms.sort.bubble_sort import bubble_sort
 import numpy as np
 
 
