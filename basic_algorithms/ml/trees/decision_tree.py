@@ -228,24 +228,3 @@ class DecisionTree:
         """
         X = self._bin_data(X)
         return np.array([self._predict(x) for x in X])
-
-
-if __name__ == '__main__':
-    from basic_algorithms.ml.data.data_loader import load_diabetes
-    X, Y = load_diabetes()
-    X[np.where(X[:, 4] == 0), 4] = X[np.where(X[:, 4] != 0), 4].mean()
-
-    clf = DecisionTree(discrete_features=[1, 3], criterion='entropy', max_depth=10, min_impurity_decrease=0.1)
-    N = 350
-    clf.fit(X[:N], Y[:N])
-
-    pred = clf.predict(X[N:])
-    y_true = Y[N:]
-
-    tp = 0
-    for y, y_hat in zip(y_true, pred):
-        if y == y_hat:
-            tp += 1
-    accuracy = tp / len(y_true)
-    print(f'Accuracy: {accuracy}')
-    e = 0
