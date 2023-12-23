@@ -88,20 +88,3 @@ class NaiveBayesianGaussianClassifier:
         pred = np.asarray(list(map(lambda i: self._classes[i], pred_index)))
         return pred
 
-
-if __name__ == '__main__':
-    from basic_algorithms.ml.data.data_loader import load_diabetes
-    X, Y = load_diabetes()
-    X[np.where(X[:, 4] == 0), 4] = X[np.where(X[:, 4] != 0), 4].mean()
-
-    clf = NaiveBayesianGaussianClassifier(discrete_features=[1, 3])
-    clf.fit(X, Y)
-    pred = clf.predict(X)
-
-    tp = 0
-    for i in range(len(Y)):
-        if Y[i] == pred[i]:
-            tp += 1
-    accuracy = tp / len(Y)
-    print(f'Accuracy: {accuracy}')
-    e = 0
