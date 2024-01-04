@@ -186,6 +186,7 @@ class SkipList:
         return build_str
 
 
+
 if __name__ == '__main__':
     sl = SkipList()
     sl.insert(1)
